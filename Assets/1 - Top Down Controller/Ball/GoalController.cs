@@ -16,6 +16,9 @@ public class GoalController : MonoBehaviour
                 //Destroy(ball.gameObject);
                 ball.position = new Vector3(0, 10, 0);
                 ball.GetComponent<BallController>().SetVelocity(Vector3.zero);
+                ball.GetComponent<Juice>().enabled = false;
+
+                GetComponent<ParticleCreator>().CreateParticles(100);
             }
         }
 

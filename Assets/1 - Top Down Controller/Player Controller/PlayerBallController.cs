@@ -177,6 +177,7 @@ public class PlayerBallController : BallController
             BallController[] balls = GameObject.FindObjectsOfType<BallController>();
             foreach (BallController ball in balls)
             {
+                ball.GetComponent<Juice>().enabled = true;
                 ball.ResetBall();
             }
         }

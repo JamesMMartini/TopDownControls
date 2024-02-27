@@ -132,6 +132,20 @@ public class BallController : MonoBehaviour
 
                 velocity = -angleToBall * (velocity.magnitude);
             }
+
+            Juice juice = GetComponent<Juice>();
+            if (juice != null)
+            {
+                juice.Squish();
+                juice.Hit();
+
+            }
+
+            PlayerBallController playerBall = GetComponent<PlayerBallController>();
+            if (playerBall != null)
+            {
+                Camera.main.GetComponent<CameraJuice>().Shake();
+            }
         }
     }
 
