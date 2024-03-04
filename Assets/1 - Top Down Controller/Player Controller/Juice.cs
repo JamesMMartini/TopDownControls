@@ -19,6 +19,9 @@ public class Juice : MonoBehaviour
     private void Start()
     {
         audioSource = GetComponent<AudioSource>();
+
+        scaleYOriginal = transform.localScale.y;
+        scaleXOriginal = transform.localScale.x;
     }
 
     // Update is called once per frame
@@ -48,14 +51,12 @@ public class Juice : MonoBehaviour
         if (squishTimer <= 0)
         {
             squishTimer = squishTimerMax;
-            scaleYOriginal = transform.localScale.y;
-            scaleXOriginal = transform.localScale.x;
         }
     }
 
     public void Hit()
     {
-        if (audioSource != null && hitSFX != null)
+        if (audioSource != null && hitSFX != null && audioSource.enabled == true)
         {
             audioSource.PlayOneShot(hitSFX);
         }

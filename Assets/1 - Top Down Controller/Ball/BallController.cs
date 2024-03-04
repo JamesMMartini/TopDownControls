@@ -8,11 +8,16 @@ public class BallController : MonoBehaviour
     [SerializeField] protected float accelerationSpeed;
     [SerializeField] protected float counterAccelModifier;
     [SerializeField] protected float friction;
-    [SerializeField] protected List<Transform> ballList = new List<Transform>();
+    [SerializeField] protected List<BallController> ballList = new List<BallController>();
     [SerializeField] protected List<Transform> wallList = new List<Transform>();
     [SerializeField] protected float movementIncrement;
+    [SerializeField] protected float maxCollisionBlockTimer;
+
+    public Vector3 baseScale;
 
     Vector3 startingPosition;
+
+    float collisionBlockTimer;
 
     protected Vector3 velocity;
     protected Vector3 acceleration;
@@ -20,17 +25,32 @@ public class BallController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        BallController[] allBalls = GameObject.FindObjectsOfType<BallController>();
+        foreach (BallController ball in allBalls)
+        {
+            if (ball != this)
+            {
+                ballList.Add(ball);
+            }
+        }
+
+        baseScale = transform.localScale;
         startingPosition = transform.position;
     }
 
     // Update is called once per frame
     protected virtual void Update()
     {
+        
+    }
+
+    protected virtual void FixedUpdate()
+    {
         if (velocity != Vector3.zero)
         {
-            if (velocity.magnitude > friction * Time.deltaTime)
+            if (velocity.magnitude > friction * Time.fixedDeltaTime)
             {
-                velocity -= velocity.normalized * friction * Time.deltaTime;
+                velocity -= velocity.normalized * friction * Time.fixedDeltaTime;
             }
             else
             {
@@ -104,48 +124,57 @@ public class BallController : MonoBehaviour
 
         transform.position = nextPos;
 
-        // run the ball collision checks
-        Transform ballCollision = IsPositionInBall();
-        if (ballCollision != null)
+        if (collisionBlockTimer <= 0)
         {
-            Vector3 angleToBall = (ballCollision.position - transform.position).normalized;
-            float angleDiff = Vector3.Angle(velocity, angleToBall);
-
-            // Add force to the ball
-            BallController ballCon = ballCollision.GetComponent<BallController>();
-            if (ballCon != null)
+            // run the ball collision checks
+            List<Transform> ballCollisions = IsPositionInBall();
+            foreach (Transform ballCollision in ballCollisions)
             {
-                ballCon.SetVelocity(angleToBall * velocity.magnitude);
-                //ballCon.SetVelocity(angleToBall * (velocity.magnitude * (1 - (angleDiff / 90))));
-            }
+                Vector3 angleToBall = (ballCollision.position - transform.position).normalized;
+                float angleDiff = Vector3.Angle(velocity, angleToBall);
 
-            // Modify the player's velocity
-            if (angleDiff < 10)
-            {
-                velocity = Vector3.zero;
-            }
-            else
-            {
-                //Vector3 newVelocity = velocity - (angleToBall * (1 - (angleDiff / 90)));
-                //newVelocity = newVelocity.normalized * velocity.magnitude;
-                //velocity = newVelocity;
+                // Add force to the ball
+                BallController ballCon = ballCollision.GetComponent<BallController>();
+                if (ballCon != null)
+                {
+                    ballCon.SetVelocity(angleToBall * velocity.magnitude);
+                    //ballCon.SetVelocity(angleToBall * (velocity.magnitude * (1 - (angleDiff / 90))));
+                }
 
-                velocity = -angleToBall * (velocity.magnitude);
-            }
+                // Modify the player's velocity
+                if (angleDiff < 10)
+                {
+                    velocity = Vector3.zero;
+                }
+                else
+                {
+                    //Vector3 newVelocity = velocity - (angleToBall * (1 - (angleDiff / 90)));
+                    //newVelocity = newVelocity.normalized * velocity.magnitude;
+                    //velocity = newVelocity;
 
-            Juice juice = GetComponent<Juice>();
-            if (juice != null)
-            {
-                juice.Squish();
-                juice.Hit();
+                    velocity = -angleToBall * (velocity.magnitude);
+                }
 
-            }
+                Juice juice = GetComponent<Juice>();
+                if (juice != null && juice.enabled == true)
+                {
+                    juice.Squish();
+                    juice.Hit();
 
-            PlayerBallController playerBall = GetComponent<PlayerBallController>();
-            if (playerBall != null)
-            {
-                Camera.main.GetComponent<CameraJuice>().Shake();
+                }
+
+                PlayerBallController playerBall = GetComponent<PlayerBallController>();
+                if (playerBall != null)
+                {
+                    Camera.main.GetComponent<CameraJuice>().Shake();
+                }
+
+                collisionBlockTimer = maxCollisionBlockTimer;
             }
+        }
+        else
+        {
+            collisionBlockTimer -= Time.fixedDeltaTime;
         }
     }
 
@@ -161,20 +190,22 @@ public class BallController : MonoBehaviour
         }
     }
 
-    protected Transform IsPositionInBall()
+    protected List<Transform> IsPositionInBall()
     {
-        foreach (Transform ball in ballList)
-        {
-            float radius = transform.localScale.x / 2f;
-            float otherRadius = ball.localScale.x / 2f;
+        List<Transform> ballCollisions = new List<Transform>();
 
-            if (Mathf.Abs((transform.position - ball.position).magnitude) < radius + otherRadius)
+        foreach (BallController ball in ballList)
+        {
+            float radius = baseScale.x / 2f;
+            float otherRadius = ball.baseScale.x / 2f;
+
+            if (Mathf.Abs((transform.position - ball.transform.position).magnitude) < radius + otherRadius)
             {
-                return ball;
+                ballCollisions.Add(ball.transform);
             }
         }
 
-        return null;
+        return ballCollisions;
     }
 
     protected bool IsPositionInWall(Vector3 position)
@@ -201,7 +232,7 @@ public class BallController : MonoBehaviour
         velocity = newVelocity;
     }
 
-    public void ResetBall()
+    public virtual void ResetBall()
     {
         transform.position = startingPosition;
         velocity = Vector3.zero;
