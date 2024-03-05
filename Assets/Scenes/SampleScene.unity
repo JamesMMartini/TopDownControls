@@ -338,10 +338,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b7f479721a4d5b4ba78ddb6bea2cd16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 25
+  maxSpeed: 30
   accelerationSpeed: 0.5
   counterAccelModifier: 1.5
-  friction: 0.06
+  friction: 0.075
   ballList: []
   wallList:
   - {fileID: 1724838032}
@@ -352,8 +352,9 @@ MonoBehaviour:
   maxCollisionBlockTimer: 0.1
   baseScale: {x: 0, y: 0, z: 0}
   directionIndicator: {fileID: 2139297704}
-  maxDirectionScale: 5
-  maxFireValue: 45
+  maxDirectionScale: 7.5
+  maxDirectionRotationSpeed: 45
+  maxFireValue: 50
   maxInputBlock: 0.5
 --- !u!114 &341490212
 MonoBehaviour:
@@ -1503,10 +1504,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f004555b0963ac42867a20324053321, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 25
+  maxSpeed: 30
   accelerationSpeed: 0.5
   counterAccelModifier: 2
-  friction: 0.06
+  friction: 0.075
   ballList: []
   wallList:
   - {fileID: 1724838032}
@@ -1632,10 +1633,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f004555b0963ac42867a20324053321, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 25
+  maxSpeed: 30
   accelerationSpeed: 0.5
   counterAccelModifier: 2
-  friction: 0.06
+  friction: 0.075
   ballList: []
   wallList:
   - {fileID: 1724838032}
@@ -1872,10 +1873,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f004555b0963ac42867a20324053321, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 25
+  maxSpeed: 30
   accelerationSpeed: 0.5
   counterAccelModifier: 2
-  friction: 0.06
+  friction: 0.075
   ballList: []
   wallList:
   - {fileID: 1724838032}
@@ -2743,10 +2744,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f004555b0963ac42867a20324053321, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 25
+  maxSpeed: 30
   accelerationSpeed: 0.5
   counterAccelModifier: 2
-  friction: 0.06
+  friction: 0.075
   ballList: []
   wallList:
   - {fileID: 1724838032}
@@ -3112,10 +3113,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f004555b0963ac42867a20324053321, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 25
+  maxSpeed: 30
   accelerationSpeed: 0.5
   counterAccelModifier: 2
-  friction: 0.06
+  friction: 0.075
   ballList: []
   wallList:
   - {fileID: 1724838032}
@@ -3527,10 +3528,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f004555b0963ac42867a20324053321, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 25
+  maxSpeed: 30
   accelerationSpeed: 0.5
   counterAccelModifier: 2
-  friction: 0.06
+  friction: 0.075
   ballList: []
   wallList:
   - {fileID: 1724838032}

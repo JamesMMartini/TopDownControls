@@ -13,6 +13,7 @@ public class PlayerBallController : BallController
 
     [SerializeField] GameObject directionIndicator;
     [SerializeField] float maxDirectionScale;
+    [SerializeField] float maxDirectionRotationSpeed;
     [SerializeField] float maxFireValue;
 
     [SerializeField] float maxInputBlock;
@@ -33,10 +34,24 @@ public class PlayerBallController : BallController
 
         // Set the direction indicator
         Vector3 indicatorDirection = new Vector3(-inputX, -inputY, 0);
-        directionIndicator.transform.up = indicatorDirection;
-        Vector3 newScale = directionIndicator.transform.localScale;
-        newScale.y = maxDirectionScale * indicatorDirection.magnitude;
-        directionIndicator.transform.localScale = newScale;
+
+        float angle = Vector3.Angle(directionIndicator.transform.up, indicatorDirection);
+        if (angle < maxDirectionRotationSpeed)
+        {
+            directionIndicator.transform.up = indicatorDirection;
+            Vector3 newScale = directionIndicator.transform.localScale;
+            newScale.y = maxDirectionScale * indicatorDirection.magnitude;
+            directionIndicator.transform.localScale = newScale;
+        }
+        else
+        {
+            directionIndicator.transform.up = Vector3.RotateTowards(directionIndicator.transform.up, indicatorDirection, maxDirectionRotationSpeed * Mathf.Deg2Rad, 0.5f);
+            Vector3 newScale = directionIndicator.transform.localScale;
+            newScale.y = maxDirectionScale * indicatorDirection.magnitude;
+            directionIndicator.transform.localScale = newScale;
+        }
+
+        
 
         //velocity = Vector3.zero;
         acceleration = Vector3.zero;
@@ -76,23 +91,26 @@ public class PlayerBallController : BallController
         {
             Vector2 moveVec = context.ReadValue<Vector2>();
 
-            if (Mathf.Abs(moveVec.x) > 0.1f)
-            {
-                inputX = moveVec.x;
-            }
-            else
-            {
-                inputX = 0f;
-            }
+            inputX = moveVec.x;
+            inputY = moveVec.y;
 
-            if (Mathf.Abs(moveVec.y) > 0.1f)
-            {
-                inputY = moveVec.y;
-            }
-            else
-            {
-                inputY = 0f;
-            }
+            //if (Mathf.Abs(moveVec.x) > 0.1f)
+            //{
+            //    inputX = moveVec.x;
+            //}
+            //else
+            //{
+            //    inputX = 0f;
+            //}
+
+            //if (Mathf.Abs(moveVec.y) > 0.1f)
+            //{
+            //    inputY = moveVec.y;
+            //}
+            //else
+            //{
+            //    inputY = 0f;
+            //}
         }
     }
 

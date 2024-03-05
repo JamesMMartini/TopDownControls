@@ -71,6 +71,8 @@ public class BallController : MonoBehaviour
         if (velocityThisFrame.y > 0)
             velYPos = true;
 
+        bool movedThisFrame = velocityThisFrame != Vector3.zero;
+
         while (velocityThisFrame != Vector3.zero)
         {
             // Run the wall collision checks
@@ -124,7 +126,7 @@ public class BallController : MonoBehaviour
 
         transform.position = nextPos;
 
-        if (collisionBlockTimer <= 0)
+        if (collisionBlockTimer <= 0 && movedThisFrame)
         {
             // run the ball collision checks
             List<Transform> ballCollisions = IsPositionInBall();
@@ -215,8 +217,8 @@ public class BallController : MonoBehaviour
             float xDist = Mathf.Abs(position.x - wall.position.x);
             float yDist = Mathf.Abs(position.y - wall.position.y);
 
-            float xMax = (transform.localScale.x / 2) + (wall.transform.localScale.x / 2);
-            float yMax = (transform.localScale.y / 2) + (wall.transform.localScale.y / 2);
+            float xMax = (baseScale.x / 2) + (wall.transform.localScale.x / 2);
+            float yMax = (baseScale.y / 2) + (wall.transform.localScale.y / 2);
 
             if (xDist < xMax && yDist < yMax)
             {
