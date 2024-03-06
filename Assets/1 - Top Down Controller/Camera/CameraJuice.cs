@@ -11,11 +11,12 @@ public class CameraJuice : MonoBehaviour
     
     bool traumaUsed;
     float shakeTimer;
+    PlayerBallController player;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        player = GameObject.FindObjectOfType<PlayerBallController>();
     }
 
     // Update is called once per frame
@@ -23,6 +24,11 @@ public class CameraJuice : MonoBehaviour
     {
         if (shakeTimer > 0)
         {
+            //if (Time.timeScale < 1)
+            //{
+            //    player.ChangeTimeScale(1f);
+            //}
+
             float trauma = 1f;
             //if (traumaUsed)
             //{
@@ -54,6 +60,8 @@ public class CameraJuice : MonoBehaviour
     {
         if (shakeTimer <= 0)
         {
+            //player.ChangeTimeScale(0.01f);
+
             shakeTimer = shakeTimerMax;
         }
         else

@@ -17,12 +17,25 @@ public class PlayerBallController : BallController
     [SerializeField] float maxFireValue;
 
     [SerializeField] float maxInputBlock;
+    [SerializeField] float projectionStep;
+    [SerializeField] float afterImageStep;
+    [SerializeField] float projectionDistance;
+    [SerializeField] GameObject projectionImagePrefab;
+    List<GameObject> afterImages = new List<GameObject>();
     float inputBlockTimer;
 
-    // Update is called once per frame
-    protected override void Update()
+    List<Vector3> pastDirections = new List<Vector3>();
+
+    protected override void Start()
     {
-        base.Update();
+        base.Start();
+
+        for (int i = 0; i < 10; i++)
+        {
+            GameObject newAfterImage = GameObject.Instantiate(projectionImagePrefab);
+            newAfterImage.transform.position = transform.position;
+            afterImages.Add(newAfterImage);
+        }
     }
 
     protected override void FixedUpdate()
@@ -35,41 +48,127 @@ public class PlayerBallController : BallController
         // Set the direction indicator
         Vector3 indicatorDirection = new Vector3(-inputX, -inputY, 0);
 
-        float angle = Vector3.Angle(directionIndicator.transform.up, indicatorDirection);
-        if (angle < maxDirectionRotationSpeed)
+        pastDirections.Add(indicatorDirection);
+        if (pastDirections.Count > 10)
         {
-            directionIndicator.transform.up = indicatorDirection;
-            Vector3 newScale = directionIndicator.transform.localScale;
-            newScale.y = maxDirectionScale * indicatorDirection.magnitude;
-            directionIndicator.transform.localScale = newScale;
+            pastDirections.RemoveAt(0);
+        }
+
+        Vector3 directionSum = pastDirections[0];
+        for (int i = 1; i < pastDirections.Count; i++)
+        {
+            directionSum += pastDirections[i];
+        }
+        indicatorDirection = directionSum / pastDirections.Count;
+
+        //directionIndicator.transform.up = indicatorDirection;
+        //Vector3 newScale = directionIndicator.transform.localScale;
+        //newScale.y = maxDirectionScale * indicatorDirection.magnitude;
+        //directionIndicator.transform.localScale = newScale;
+
+        if (inputX != 0 || inputY != 0)
+        {
+            foreach (GameObject image in afterImages)
+            {
+                image.SetActive(false);
+            }
+
+            Vector3 projectionPoint = transform.position;
+            float currentProjection = 1f;
+            bool foundBall = false;
+            float afterImageDistance = 0f;
+            int afterImageCount = 0;
+
+            while (currentProjection < projectionDistance && !foundBall)
+            {
+                if (afterImageDistance > afterImageStep && afterImageCount < afterImages.Count)
+                {
+                    GameObject projectionImage = afterImages[afterImageCount];
+                    projectionImage.SetActive(true);
+                    projectionImage.transform.position = projectionPoint;
+                    SpriteRenderer sprite = projectionImage.GetComponent<SpriteRenderer>();
+                    Color newCol = sprite.color;
+                    newCol.a = 1 - (currentProjection / projectionDistance);
+                    sprite.color = newCol;
+
+                    afterImageDistance = 0f;
+                    afterImageCount++;
+                }
+
+                projectionPoint = transform.position + (indicatorDirection.normalized * currentProjection);
+                List<Transform> bolCols = IsForcedPositionInBall(projectionPoint);
+
+                foreach (Transform ballCol in bolCols)
+                {
+                    BallController ball = ballCol.GetComponent<BallController>();
+                    if (ball != null)
+                    {
+                        Vector3 projDir = (ballCol.position - projectionPoint).normalized;
+
+                        ball.SetProjectedDirection(projDir.x, projDir.y);
+
+                        if (afterImageCount < afterImages.Count)
+                        {
+                            GameObject projectionImage = afterImages[afterImageCount];
+                            projectionImage.SetActive(true);
+                            projectionImage.transform.position = projectionPoint;
+                            SpriteRenderer sprite = projectionImage.GetComponent<SpriteRenderer>();
+                            Color newCol = sprite.color;
+                            newCol.a = 1 - (currentProjection / projectionDistance);
+                            sprite.color = newCol;
+
+                            afterImageDistance = 0f;
+                            afterImageCount++;
+                        }
+
+                        foundBall = true;
+                    }
+                }
+
+                afterImageDistance += projectionStep;
+                currentProjection += projectionStep;
+            }
         }
         else
         {
-            directionIndicator.transform.up = Vector3.RotateTowards(directionIndicator.transform.up, indicatorDirection, maxDirectionRotationSpeed * Mathf.Deg2Rad, 0.5f);
-            Vector3 newScale = directionIndicator.transform.localScale;
-            newScale.y = maxDirectionScale * indicatorDirection.magnitude;
-            directionIndicator.transform.localScale = newScale;
+            if (afterImages[0].activeInHierarchy)
+            {
+                foreach (GameObject image in afterImages)
+                {
+                    image.SetActive(false);
+                }
+            }
         }
 
-        
-
-        //velocity = Vector3.zero;
-        acceleration = Vector3.zero;
-
-        //acceleration.x = inputX;
-        //acceleration.y = inputY;
-        acceleration.x = fireX;
-        acceleration.y = fireY;
-
-        acceleration = acceleration * accelerationSpeed * Time.fixedDeltaTime;
-        float angleVelVsAcc = Vector3.Angle(velocity, acceleration);
-        float counterPushRatio = angleVelVsAcc / 180f;
-
-        velocity += acceleration + (acceleration * counterPushRatio * counterAccelModifier);
-
-        if (velocity.magnitude > maxSpeed * Time.fixedDeltaTime)
+        if (fireX == 0 && fireY == 0)
         {
-            velocity = velocity.normalized * maxSpeed * Time.fixedDeltaTime;
+            //velocity = Vector3.zero;
+            acceleration = Vector3.zero;
+
+            //acceleration.x = inputX;
+            //acceleration.y = inputY;
+            acceleration.x = fireX;
+            acceleration.y = fireY;
+
+            acceleration = acceleration * accelerationSpeed * Time.fixedDeltaTime;
+            float angleVelVsAcc = Vector3.Angle(velocity, acceleration);
+            float counterPushRatio = angleVelVsAcc / 180f;
+
+            velocity += acceleration + (acceleration * counterPushRatio * counterAccelModifier);
+
+            if (velocity.magnitude > maxSpeed * Time.fixedDeltaTime)
+            {
+                velocity = velocity.normalized * maxSpeed * Time.fixedDeltaTime;
+            }
+        }
+        else
+        {
+            velocity = indicatorDirection;
+
+            if (velocity.magnitude > maxSpeed * Time.fixedDeltaTime)
+            {
+                velocity = velocity.normalized * maxSpeed * Time.fixedDeltaTime;
+            }
         }
 
         if (fireX != 0 || fireY != 0)
@@ -120,6 +219,20 @@ public class PlayerBallController : BallController
         {
             if (context.performed)
             {
+                Time.timeScale = baseTimescale * 0.05f;
+                Time.fixedDeltaTime = baseFixedDeltaTime * Time.timeScale;
+
+                RescaleAllVelocities(Time.fixedDeltaTime, baseFixedDeltaTime);
+            }
+            else if (context.canceled)
+            {
+                float oldFixedDeltaTime = Time.fixedDeltaTime;
+
+                Time.timeScale = baseTimescale;
+                Time.fixedDeltaTime = baseFixedDeltaTime * Time.timeScale;
+
+                RescaleAllVelocities(Time.fixedDeltaTime, oldFixedDeltaTime);
+
                 fireX = -inputX * maxFireValue;
                 fireY = -inputY * maxFireValue;
             }
@@ -152,4 +265,23 @@ public class PlayerBallController : BallController
 
         inputBlockTimer = maxInputBlock;
     }
+
+    public void RescaleAllVelocities(float newFixedDeltaTime, float oldFixedDeltaTime)
+    {
+        velocity = velocity / oldFixedDeltaTime;
+        velocity = velocity * newFixedDeltaTime;
+
+        foreach (BallController ball in ballList)
+        {
+            ball.RescaleVelocity(newFixedDeltaTime, oldFixedDeltaTime);
+        }
+    }
+
+    //public void ChangeTimeScale(float newTimeScale)
+    //{
+    //    Time.timeScale = baseTimescale * newTimeScale;
+    //    Time.fixedDeltaTime = baseFixedDeltaTime * Time.timeScale;
+
+    //    RescaleAllVelocities(Time.fixedDeltaTime, baseFixedDeltaTime);
+    //}
 }

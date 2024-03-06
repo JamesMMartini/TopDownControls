@@ -19,11 +19,19 @@ public class BallController : MonoBehaviour
 
     float collisionBlockTimer;
 
+    [SerializeField] GameObject projectedDirectionIndicator;
+    [SerializeField] float maxProjectedDirectionScale;
+    float projectedX;
+    float projectedY;
+
     protected Vector3 velocity;
     protected Vector3 acceleration;
 
+    protected float baseTimescale;
+    protected float baseFixedDeltaTime;
+
     // Start is called before the first frame update
-    void Start()
+    protected virtual void Start()
     {
         BallController[] allBalls = GameObject.FindObjectsOfType<BallController>();
         foreach (BallController ball in allBalls)
@@ -36,16 +44,40 @@ public class BallController : MonoBehaviour
 
         baseScale = transform.localScale;
         startingPosition = transform.position;
-    }
 
-    // Update is called once per frame
-    protected virtual void Update()
-    {
-        
+        baseTimescale = Time.timeScale;
+        baseFixedDeltaTime = Time.fixedDeltaTime;
     }
 
     protected virtual void FixedUpdate()
     {
+        if (projectedDirectionIndicator != null)
+        {
+            if (projectedX != 0 || projectedY != 0)
+            {
+                Vector3 projectedDirection = new Vector3(projectedX, projectedY, 0f);
+
+                projectedDirectionIndicator.transform.up = projectedDirection;
+                Vector3 newScale = projectedDirectionIndicator.transform.localScale;
+                newScale.x = 0.75f;
+                newScale.y = maxProjectedDirectionScale;
+                newScale.z = 0.75f;
+                projectedDirectionIndicator.transform.localScale = newScale;
+
+                projectedX = 0;
+                projectedY = 0;
+            }
+            else if (projectedDirectionIndicator.transform.localScale != Vector3.zero)
+            {
+                projectedDirectionIndicator.transform.localScale = Vector3.zero;
+            }
+        }
+
+        if (velocity.magnitude > maxSpeed * Time.fixedDeltaTime)
+        {
+            velocity = velocity.normalized * maxSpeed * Time.fixedDeltaTime;
+        }
+
         if (velocity != Vector3.zero)
         {
             if (velocity.magnitude > friction * Time.fixedDeltaTime)
@@ -210,6 +242,24 @@ public class BallController : MonoBehaviour
         return ballCollisions;
     }
 
+    protected List<Transform> IsForcedPositionInBall(Vector3 pos)
+    {
+        List<Transform> ballCollisions = new List<Transform>();
+
+        foreach (BallController ball in ballList)
+        {
+            float radius = baseScale.x / 2f;
+            float otherRadius = ball.baseScale.x / 2f;
+
+            if (Mathf.Abs((pos - ball.transform.position).magnitude) < radius + otherRadius)
+            {
+                ballCollisions.Add(ball.transform);
+            }
+        }
+
+        return ballCollisions;
+    }
+
     protected bool IsPositionInWall(Vector3 position)
     {
         foreach (Transform wall in wallList)
@@ -239,5 +289,17 @@ public class BallController : MonoBehaviour
         transform.position = startingPosition;
         velocity = Vector3.zero;
         acceleration = Vector3.zero;
+    }
+
+    public virtual void SetProjectedDirection(float x, float y)
+    {
+        projectedX = x;
+        projectedY = y;
+    }
+
+    public void RescaleVelocity(float newfixedDeltaTime, float oldFixedDeltaTime)
+    {
+        velocity = velocity / oldFixedDeltaTime;
+        velocity = velocity * newfixedDeltaTime;
     }
 }
