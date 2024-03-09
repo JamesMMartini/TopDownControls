@@ -5,12 +5,17 @@ using UnityEngine.InputSystem;
 
 public class PlayerBallController : BallController
 {
+    [Header("Menu Objects")]
+    [SerializeField] GameObject startMenu;
+    [SerializeField] GameObject endMenu;
+
     float inputX;
     float inputY;
 
     float fireX;
     float fireY;
 
+    [Header("Player Variables")]
     [SerializeField] GameObject directionIndicator;
     [SerializeField] float maxDirectionScale;
     [SerializeField] float maxDirectionRotationSpeed;
@@ -226,6 +231,9 @@ public class PlayerBallController : BallController
             }
             else if (context.canceled)
             {
+                if (!isActiveOnBoard)
+                    isActiveOnBoard = true;
+
                 float oldFixedDeltaTime = Time.fixedDeltaTime;
 
                 Time.timeScale = baseTimescale;
@@ -253,6 +261,34 @@ public class PlayerBallController : BallController
         }
     }
 
+    public void InternalResetBalls()
+    {
+        BallController[] balls = GameObject.FindObjectsOfType<BallController>();
+        foreach (BallController ball in balls)
+        {
+            ball.GetComponent<Juice>().enabled = true;
+            ball.GetComponent<AudioSource>().enabled = true;
+            ball.ResetBall();
+        }
+    }
+
+    public void MenuStart(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            if (startMenu.activeInHierarchy)
+            {
+                GetComponent<PlayerInput>().SwitchCurrentActionMap("Player");
+                startMenu.SetActive(false);
+            }
+            else if (endMenu.activeInHierarchy)
+            {
+                GetComponent<PlayerInput>().SwitchCurrentActionMap("Player");
+                endMenu.SetActive(false);
+            }
+        }
+    }
+
     public override void ResetBall()
     {
         base.ResetBall();
@@ -264,12 +300,13 @@ public class PlayerBallController : BallController
         fireY = 0f;
 
         inputBlockTimer = maxInputBlock;
+
+        isActiveOnBoard = false;
     }
 
     public void RescaleAllVelocities(float newFixedDeltaTime, float oldFixedDeltaTime)
     {
-        velocity = velocity / oldFixedDeltaTime;
-        velocity = velocity * newFixedDeltaTime;
+        RescaleVelocity(newFixedDeltaTime, oldFixedDeltaTime);
 
         foreach (BallController ball in ballList)
         {
@@ -277,11 +314,13 @@ public class PlayerBallController : BallController
         }
     }
 
-    //public void ChangeTimeScale(float newTimeScale)
-    //{
-    //    Time.timeScale = baseTimescale * newTimeScale;
-    //    Time.fixedDeltaTime = baseFixedDeltaTime * Time.timeScale;
+    public void ChangeTimeScale(float newTimeScale)
+    {
+        float oldFixedDeltaTime = Time.fixedDeltaTime;
 
-    //    RescaleAllVelocities(Time.fixedDeltaTime, baseFixedDeltaTime);
-    //}
+        Time.timeScale = newTimeScale;
+        Time.fixedDeltaTime = baseFixedDeltaTime * Time.timeScale;
+
+        RescaleAllVelocities(Time.fixedDeltaTime, oldFixedDeltaTime);
+    }
 }

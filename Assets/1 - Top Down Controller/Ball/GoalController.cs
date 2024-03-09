@@ -35,6 +35,7 @@ public class GoalController : MonoBehaviour
                 ball.GetComponent<BallController>().SetVelocity(Vector3.zero);
                 ball.GetComponent<Juice>().enabled = false;
                 ball.GetComponent<AudioSource>().enabled = false;
+                ball.isActiveOnBoard = false;
 
                 GetComponent<ParticleCreator>().CreateParticles(100);
             }

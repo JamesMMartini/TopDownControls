@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
+    public bool isActiveOnBoard = true;
+
     [SerializeField] protected float maxSpeed;
     [SerializeField] protected float accelerationSpeed;
     [SerializeField] protected float counterAccelModifier;
@@ -18,6 +20,8 @@ public class BallController : MonoBehaviour
     Vector3 startingPosition;
 
     float collisionBlockTimer;
+
+    Vector3 storedVelocity;
 
     [SerializeField] GameObject projectedDirectionIndicator;
     [SerializeField] float maxProjectedDirectionScale;
@@ -160,6 +164,8 @@ public class BallController : MonoBehaviour
 
         if (collisionBlockTimer <= 0 && movedThisFrame)
         {
+            bool freezeCamera = false;
+
             // run the ball collision checks
             List<Transform> ballCollisions = IsPositionInBall();
             foreach (Transform ballCollision in ballCollisions)
@@ -200,10 +206,15 @@ public class BallController : MonoBehaviour
                 PlayerBallController playerBall = GetComponent<PlayerBallController>();
                 if (playerBall != null)
                 {
-                    Camera.main.GetComponent<CameraJuice>().Shake();
+                    freezeCamera = true;
                 }
 
                 collisionBlockTimer = maxCollisionBlockTimer;
+            }
+
+            if (freezeCamera)
+            {
+                Camera.main.GetComponent<CameraJuice>().Shake();
             }
         }
         else
@@ -289,6 +300,7 @@ public class BallController : MonoBehaviour
         transform.position = startingPosition;
         velocity = Vector3.zero;
         acceleration = Vector3.zero;
+        isActiveOnBoard = true;
     }
 
     public virtual void SetProjectedDirection(float x, float y)
@@ -299,7 +311,21 @@ public class BallController : MonoBehaviour
 
     public void RescaleVelocity(float newfixedDeltaTime, float oldFixedDeltaTime)
     {
-        velocity = velocity / oldFixedDeltaTime;
-        velocity = velocity * newfixedDeltaTime;
+        if (newfixedDeltaTime > 0.0002f && oldFixedDeltaTime > 0.0002f)
+        {
+            velocity = velocity / oldFixedDeltaTime;
+            velocity = velocity * newfixedDeltaTime;
+        }
+        else if (newfixedDeltaTime <= 0.0002f)
+        {
+            storedVelocity = velocity;
+
+            velocity = velocity / oldFixedDeltaTime;
+            velocity = velocity * newfixedDeltaTime;
+        }
+        else if (oldFixedDeltaTime <= 0.0002f)
+        {
+            velocity = storedVelocity;
+        }
     }
 }

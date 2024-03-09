@@ -8,7 +8,11 @@ public class CameraJuice : MonoBehaviour
     [SerializeField] float offsetYMax;
     [SerializeField] float rotationMax;
     [SerializeField] float shakeTimerMax;
-    
+    [SerializeField] float freezeTimerMax;
+
+    float defaultTimeScale;
+    bool frozen;
+    float freezeTimer;
     bool traumaUsed;
     float shakeTimer;
     PlayerBallController player;
@@ -22,6 +26,17 @@ public class CameraJuice : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (freezeTimer > 0)
+        {
+            freezeTimer -= Time.unscaledDeltaTime;
+        }
+        else if (frozen)
+        {
+            frozen = false;
+            player.ChangeTimeScale(defaultTimeScale);
+        }
+
+
         if (shakeTimer > 0)
         {
             //if (Time.timeScale < 1)
@@ -60,9 +75,14 @@ public class CameraJuice : MonoBehaviour
     {
         if (shakeTimer <= 0)
         {
-            //player.ChangeTimeScale(0.01f);
+            defaultTimeScale = Time.timeScale;
+
+            player.ChangeTimeScale(0f);
 
             shakeTimer = shakeTimerMax;
+            freezeTimer = freezeTimerMax;
+            
+            frozen = true;
         }
         else
         {
