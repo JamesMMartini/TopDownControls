@@ -29,7 +29,7 @@ public class EndGameManager : MonoBehaviour
             foreach (BallController ball in allBalls)
                 if (ball.isActiveOnBoard)
                     activeBallCount++;
-            Debug.Log(activeBallCount);
+
             if (activeBallCount <= 1)
             {
                 //end the game
@@ -41,7 +41,9 @@ public class EndGameManager : MonoBehaviour
                 timerStarted = false;
                 player.InternalResetBalls();
 
-                timerScore.text = string.Format("{0:0.00}", timer);
+                timerScore.text = string.Format("{0:0.00}", timer) + " seconds";
+
+                timer = 0f;
             }
             else
             {

@@ -8,6 +8,7 @@ public class PlayerBallController : BallController
     [Header("Menu Objects")]
     [SerializeField] GameObject startMenu;
     [SerializeField] GameObject endMenu;
+    [SerializeField] GameObject pauseMenu;
 
     float inputX;
     float inputY;
@@ -224,7 +225,7 @@ public class PlayerBallController : BallController
         {
             if (context.performed)
             {
-                Time.timeScale = baseTimescale * 0.05f;
+                Time.timeScale = baseTimescale * 0.02f;
                 Time.fixedDeltaTime = baseFixedDeltaTime * Time.timeScale;
 
                 RescaleAllVelocities(Time.fixedDeltaTime, baseFixedDeltaTime);
@@ -258,6 +259,9 @@ public class PlayerBallController : BallController
                 ball.GetComponent<AudioSource>().enabled = true;
                 ball.ResetBall();
             }
+
+            pauseMenu.SetActive(false);
+            GetComponent<PlayerInput>().SwitchCurrentActionMap("Player");
         }
     }
 
@@ -322,5 +326,33 @@ public class PlayerBallController : BallController
         Time.fixedDeltaTime = baseFixedDeltaTime * Time.timeScale;
 
         RescaleAllVelocities(Time.fixedDeltaTime, oldFixedDeltaTime);
+    }
+
+    public void Pause(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            ChangeTimeScale(0f);
+            GetComponent<PlayerInput>().SwitchCurrentActionMap("Menu");
+            pauseMenu.SetActive(true);
+        }
+    }
+
+    public void Resume(InputAction.CallbackContext context)
+    {
+        if (context.performed && pauseMenu.activeInHierarchy)
+        {
+            ChangeTimeScale(1f);
+            GetComponent<PlayerInput>().SwitchCurrentActionMap("Player");
+            pauseMenu.SetActive(false);
+        }
+    }
+
+    public void Quit(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            Application.Quit();
+        }
     }
 }
